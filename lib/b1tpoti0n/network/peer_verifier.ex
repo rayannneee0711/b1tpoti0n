@@ -1,0 +1,277 @@
+defmodule B1tpoti0n.Network.PeerVerifier do
+  @moduledoc """
+  Async peer connection verification.
+
+  Attempts TCP connections to peers to verify they can accept incoming connections.
+  Results are cached in ETS to avoid repeated verification attempts.
+
+  ## How it works
+
+  1. On first announce, peer is queued for verification
+  2. Background workers attempt TCP connect to peer's IP:port
+  3. Result (connectable/not connectable) is stored with TTL
+  4. Swarm workers prefer connectable peers in responses
+
+  ## Configuration
+
+      config :b1tpoti0n, :peer_verification,
+        enabled: true,
+        connect_timeout: 3000,   # 3 second timeout
+        cache_ttl: 3600,         # 1 hour cache
+        max_concurrent: 50,      # max concurrent verifications
+        rate_limit: 100          # max verifications per minute
+  """
+  use GenServer
+  require Logger
+
+  @table_name :peer_verification_cache
+  @verification_timeout 3_000
+  @cache_ttl_seconds 3600
+  @cleanup_interval_ms 60_000
+  @max_concurrent 50
+
+  # --- Client API ---
+
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @doc """
+  Check if peer is connectable. Returns cached result if available,
+  otherwise queues for verification and returns :unknown.
+
+  Returns:
+  - {:ok, true} - Peer is verified connectable
+  - {:ok, false} - Peer is verified not connectable
+  - :unknown - Not yet verified (queued for checking)
+  """
+  @spec check_connectable(tuple(), non_neg_integer()) :: {:ok, boolean()} | :unknown
+  def check_connectable(ip, port) when is_tuple(ip) and is_integer(port) do
+    key = {ip, port}
+
+    case :ets.lookup(@table_name, key) do
+      [{^key, connectable, expires_at}] ->
+        if System.system_time(:second) < expires_at do
+          {:ok, connectable}
+        else
+          # Expired, queue for re-verification
+          queue_verification(ip, port)
+          :unknown
+        end
+
+      [] ->
+        # Not in cache, queue for verification
+        queue_verification(ip, port)
+        :unknown
+    end
+  end
+
+  @doc """
+  Queue a peer for connection verification.
+  """
+  @spec queue_verification(tuple(), non_neg_integer()) :: :ok | {:error, :disabled}
+  def queue_verification(ip, port) when is_tuple(ip) and is_integer(port) do
+    if enabled?() do
+      GenServer.cast(__MODULE__, {:verify, ip, port})
+    else
+      {:error, :disabled}
+    end
+  end
+
+  @doc """
+  Get verification stats.
+  """
+  @spec stats() :: map()
+  def stats do
+    GenServer.call(__MODULE__, :stats)
+  end
+
+  @doc """
+  Clear the verification cache.
+  """
+  @spec clear_cache() :: :ok
+  def clear_cache do
+    GenServer.call(__MODULE__, :clear_cache)
+  end
+
+  @doc """
+  Check if peer verification is enabled.
+  """
+  @spec enabled?() :: boolean()
+  def enabled? do
+    config = Application.get_env(:b1tpoti0n, :peer_verification, [])
+    Keyword.get(config, :enabled, false)
+  end
+
+  # --- Server Callbacks ---
+
+  @impl true
+  def init(_opts) do
+    # Create ETS table for verification cache
+    :ets.new(@table_name, [:set, :public, :named_table, read_concurrency: true])
+
+    schedule_cleanup()
+
+    state = %{
+      pending: :queue.new(),
+      in_progress: MapSet.new(),
+      verified_count: 0,
+      failed_count: 0
+    }
+
+    {:ok, state}
+  end
+
+  @impl true
+  def handle_cast({:verify, ip, port}, state) do
+    key = {ip, port}
+
+    # Skip if already pending or in progress
+    cond do
+      MapSet.member?(state.in_progress, key) ->
+        {:noreply, state}
+
+      Enum.any?(:queue.to_list(state.pending), fn {i, p} -> i == ip and p == port end) ->
+        {:noreply, state}
+
+      true ->
+        # Add to pending queue
+        new_pending = :queue.in({ip, port}, state.pending)
+        state = %{state | pending: new_pending}
+
+        # Process queue
+        state = process_pending(state)
+        {:noreply, state}
+    end
+  end
+
+  @impl true
+  def handle_info({:verification_result, {ip, port}, result}, state) do
+    key = {ip, port}
+    now = System.system_time(:second)
+    ttl = get_cache_ttl()
+
+    # Store result in ETS
+    :ets.insert(@table_name, {key, result, now + ttl})
+
+    # Remove from in_progress
+    new_in_progress = MapSet.delete(state.in_progress, key)
+
+    state =
+      if result do
+        %{state | in_progress: new_in_progress, verified_count: state.verified_count + 1}
+      else
+        %{state | in_progress: new_in_progress, failed_count: state.failed_count + 1}
+      end
+
+    # Process more pending verifications
+    state = process_pending(state)
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(:cleanup, state) do
+    # Remove expired entries
+    now = System.system_time(:second)
+
+    expired =
+      :ets.select(@table_name, [
+        {{:"$1", :"$2", :"$3"}, [{:<, :"$3", now}], [:"$1"]}
+      ])
+
+    Enum.each(expired, &:ets.delete(@table_name, &1))
+
+    if length(expired) > 0 do
+      Logger.debug("Peer verifier cleaned up #{length(expired)} expired entries")
+    end
+
+    schedule_cleanup()
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_call(:stats, _from, state) do
+    cache_size = :ets.info(@table_name, :size)
+
+    stats = %{
+      enabled: enabled?(),
+      cache_size: cache_size,
+      pending: :queue.len(state.pending),
+      in_progress: MapSet.size(state.in_progress),
+      verified_count: state.verified_count,
+      failed_count: state.failed_count
+    }
+
+    {:reply, stats, state}
+  end
+
+  @impl true
+  def handle_call(:clear_cache, _from, state) do
+    :ets.delete_all_objects(@table_name)
+    {:reply, :ok, state}
+  end
+
+  # --- Private Helpers ---
+
+  defp process_pending(state) do
+    max_concurrent = get_max_concurrent()
+
+    if MapSet.size(state.in_progress) < max_concurrent do
+      case :queue.out(state.pending) do
+        {{:value, {ip, port}}, new_pending} ->
+          # Start async verification
+          key = {ip, port}
+          parent = self()
+
+          Task.start(fn ->
+            result = verify_peer(ip, port)
+            send(parent, {:verification_result, key, result})
+          end)
+
+          new_in_progress = MapSet.put(state.in_progress, key)
+          state = %{state | pending: new_pending, in_progress: new_in_progress}
+
+          # Try to process more
+          process_pending(state)
+
+        {:empty, _} ->
+          state
+      end
+    else
+      state
+    end
+  end
+
+  defp verify_peer(ip, port) do
+    timeout = get_connect_timeout()
+
+    case :gen_tcp.connect(ip, port, [:binary, active: false], timeout) do
+      {:ok, socket} ->
+        :gen_tcp.close(socket)
+        true
+
+      {:error, _reason} ->
+        false
+    end
+  end
+
+  defp schedule_cleanup do
+    Process.send_after(self(), :cleanup, @cleanup_interval_ms)
+  end
+
+  defp get_connect_timeout do
+    config = Application.get_env(:b1tpoti0n, :peer_verification, [])
+    Keyword.get(config, :connect_timeout, @verification_timeout)
+  end
+
+  defp get_cache_ttl do
+    config = Application.get_env(:b1tpoti0n, :peer_verification, [])
+    Keyword.get(config, :cache_ttl, @cache_ttl_seconds)
+  end
+
+  defp get_max_concurrent do
+    config = Application.get_env(:b1tpoti0n, :peer_verification, [])
+    Keyword.get(config, :max_concurrent, @max_concurrent)
+  end
+end
