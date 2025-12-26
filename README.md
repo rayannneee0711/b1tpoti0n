@@ -100,3 +100,7 @@ A standalone admin interface is available at `admin-ui/index.html`.
 ```bash
 mix test
 ```
+
+## License
+
+[AGPL-3.0](LICENSE) — If you modify and run this on a server, you must share your changes. If you don't, I'll hunt you down.
