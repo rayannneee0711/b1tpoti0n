@@ -403,6 +403,10 @@ Implements BEP 15. Connect -> Announce/Scrape flow.
 - 2: Scrape
 - 3: Error
 
+> **Private Tracker Limitation:** The UDP protocol (BEP 15) does not support passkey authentication. This is a protocol limitation; there's no standard way to pass authentication credentials via UDP. User upload/download stats are **not tracked** for UDP announces.
+>
+> Most private trackers (Gazelle/Ocelot, etc.) use HTTP only for this reason. Only enable UDP if running a public tracker or hybrid setup where stats tracking isn't required for UDP clients.
+
 ---
 
 ## Admin API

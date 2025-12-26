@@ -35,6 +35,9 @@ config :b1tpoti0n,
   rate_limit_whitelist: ["127.0.0.1", "::1"],
   # UDP tracker configuration (BEP 15)
   # Set udp_port to enable UDP tracker, nil to disable
+  # WARNING: UDP does not support passkey authentication (BEP 15 limitation).
+  # User stats (upload/download) are NOT tracked for UDP announces.
+  # Only enable for public tracker mode or hybrid setups.
   udp_port: nil,
   udp_connection_timeout: 120,
   # Hit-and-Run detection configuration

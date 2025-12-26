@@ -9,7 +9,7 @@ Private BitTorrent tracker in Elixir.
 ## Features
 
 - HTTP/HTTPS tracker (BEP 3)
-- UDP tracker (BEP 15)
+- UDP tracker (BEP 15) (public mode only, no user auth)
 - Passkey authentication
 - User ratio tracking
 - Client whitelist
