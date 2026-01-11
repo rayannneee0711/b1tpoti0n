@@ -254,6 +254,42 @@ defmodule B1tpoti0n.Admin do
     |> Repo.all()
   end
 
+  @doc """
+  Get a user's currently active peer connections across all swarms.
+
+  Returns a list of maps containing info_hash and peer data for each
+  torrent the user is currently seeding or leeching.
+
+  ## Examples
+
+      iex> Admin.get_user_active_peers(123)
+      [%{info_hash: "abc123...", is_seeder: true, uploaded: 1000, ...}, ...]
+  """
+  @spec get_user_active_peers(integer()) :: [map()]
+  def get_user_active_peers(user_id) when is_integer(user_id) do
+    alias B1tpoti0n.Swarm
+    alias B1tpoti0n.Swarm.PeerStorage
+
+    Swarm.list_workers()
+    |> Enum.flat_map(fn {info_hash, _pid} ->
+      peers = PeerStorage.get_all_peers(info_hash)
+
+      peers
+      |> Enum.filter(fn {_key, peer} -> peer[:user_id] == user_id end)
+      |> Enum.map(fn {{ip, port}, peer} ->
+        %{
+          info_hash: Base.encode16(info_hash, case: :lower),
+          ip: ip,
+          port: port,
+          is_seeder: peer[:is_seeder] || false,
+          uploaded: peer[:uploaded] || 0,
+          downloaded: peer[:downloaded] || 0,
+          updated_at: peer[:updated_at]
+        }
+      end)
+    end)
+  end
+
   # ============================================================================
   # Whitelist Management
   # ============================================================================

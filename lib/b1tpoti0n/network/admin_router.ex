@@ -781,6 +781,18 @@ defmodule B1tpoti0n.Network.AdminRouter do
     end
   end
 
+  # Get user's currently active peers (what they're seeding/leeching right now)
+  get "/users/:id/peers" do
+    case parse_id(id) do
+      {:ok, user_id} ->
+        peers = Admin.get_user_active_peers(user_id)
+        json_response(conn, 200, %{data: peers, count: length(peers), success: true})
+
+      :error ->
+        json_response(conn, 400, %{error: "Invalid user ID", success: false})
+    end
+  end
+
   get "/torrents/:id/snatches" do
     case parse_id(id) do
       {:ok, torrent_id} ->
