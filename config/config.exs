@@ -28,6 +28,11 @@ config :b1tpoti0n,
   # "https://admin.example.com" = single origin
   # ["https://admin.example.com", "https://backup.example.com"] = multiple origins
   cors_origins: "*",
+  # IP whitelist for Admin API (additional security layer)
+  # Empty list [] = no restriction (default, all IPs allowed)
+  # ["127.0.0.1", "::1", "192.168.1.100"] = only these IPs can access admin API
+  # Supports individual IPs only (no CIDR ranges)
+  admin_api_ip_whitelist: [],
   # Rate limiting configuration
   rate_limiting_enabled: true,
   rate_limits: [

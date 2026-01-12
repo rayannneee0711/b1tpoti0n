@@ -28,6 +28,13 @@ if config_env() == :prod do
         nil -> "*"
         "*" -> "*"
         origins -> String.split(origins, ",", trim: true)
+      end),
+    # IP whitelist for Admin API (comma-separated, empty = no restriction)
+    admin_api_ip_whitelist:
+      (case System.get_env("ADMIN_API_IP_WHITELIST") do
+        nil -> []
+        "" -> []
+        ips -> String.split(ips, ",", trim: true) |> Enum.map(&String.trim/1)
       end)
 
   # Database configuration

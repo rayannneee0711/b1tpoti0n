@@ -92,6 +92,7 @@ defmodule B1tpoti0n.Network.AdminRouter do
   alias B1tpoti0n.Stats.Collector, as: StatsCollector
 
   plug(:cors)
+  plug(:check_ip_whitelist)
   plug(:authenticate)
   plug(:match)
   plug(Plug.Parsers,
@@ -993,6 +994,54 @@ defmodule B1tpoti0n.Network.AdminRouter do
 
       origin when is_binary(origin) ->
         origin
+    end
+  end
+
+  defp check_ip_whitelist(conn, _opts) do
+    # Allow preflight requests through
+    if conn.method == "OPTIONS" do
+      conn
+    else
+      whitelist = Application.get_env(:b1tpoti0n, :admin_api_ip_whitelist, [])
+
+      # Empty whitelist = no restriction
+      if whitelist == [] do
+        conn
+      else
+        client_ip = get_client_ip(conn)
+
+        if client_ip in whitelist do
+          conn
+        else
+          conn
+          |> json_response(403, %{
+            error: "Access denied - IP not in whitelist",
+            success: false
+          })
+          |> Plug.Conn.halt()
+        end
+      end
+    end
+  end
+
+  defp get_client_ip(conn) do
+    # Check X-Forwarded-For header first (for reverse proxy setups)
+    forwarded_for =
+      conn
+      |> Plug.Conn.get_req_header("x-forwarded-for")
+      |> List.first()
+
+    case forwarded_for do
+      nil ->
+        # Use direct connection IP
+        conn.remote_ip |> :inet.ntoa() |> to_string()
+
+      header ->
+        # Take the first IP from X-Forwarded-For (original client)
+        header
+        |> String.split(",")
+        |> List.first()
+        |> String.trim()
     end
   end
 
